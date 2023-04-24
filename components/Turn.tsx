@@ -4,13 +4,13 @@ import { useAppSelector } from "../redux/store/hooks";
 
 interface ITurnProps {
   timer: number;
-  turn: number;
 }
 
-const Turn: React.FunctionComponent<ITurnProps> = ({ timer, turn }) => {
+const Turn: React.FunctionComponent<ITurnProps> = ({ timer }) => {
+  const { turn } = useAppSelector((state) => state.game);
   return (
     <View style={styles.turn}>
-      {turn === 0 ? (
+      {turn === 1 ? (
         <Text style={styles.turnText}>{timer}</Text>
       ) : (
         <Text style={styles.turnText}>Your turn</Text>

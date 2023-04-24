@@ -13,6 +13,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../redux/store/hooks";
 import { click, computerPlay, reset } from "../redux/slices/gameSlice";
 import Turn from "./Turn";
+import Start from "./Start";
 
 interface IGameProps {}
 
@@ -20,20 +21,20 @@ const Game: React.FunctionComponent<IGameProps> = (props) => {
   const [count, setCount] = useState<number>(0);
 
   const dispatch = useAppDispatch();
-  const { board, xIsNext, turn } = useAppSelector((state) => state.game);
+  const { board, turn } = useAppSelector((state) => state.game);
   const winner = calculateWinner(board);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (count < 3 && turn === 0) {
+      if (count < 3 && turn === 1) {
         setCount((curCount) => curCount + 1);
       }
-      if (count >= 3 && turn === 0) {
+      if (count >= 3 && turn === 1) {
         dispatch(computerPlay({ index: 0, winner }));
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [count]);
+  }, [count, turn]);
 
   const handleClick = (index: number) => {
     dispatch(click({ index, winner }));
@@ -45,11 +46,11 @@ const Game: React.FunctionComponent<IGameProps> = (props) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {!winner && <Turn timer={count} turn={turn} />}
+      {!winner && <Turn timer={count} />}
       <Board cells={board} onPress={handleClick} />
       <View style={styles.gameWinner}>
         <Text style={styles.winnerText}>
-          {winner && (turn === 1 ? `Computer wins!` : "You win!")}
+          {winner && (turn === 0 ? `Computer wins!` : "You win!")}
         </Text>
       </View>
       <TouchableOpacity style={styles.gameReset} onPress={handleResetGame}>
@@ -65,6 +66,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
+    position: "relative",
   },
   gameWinner: {
     padding: 25,
