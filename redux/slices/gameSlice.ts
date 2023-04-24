@@ -8,15 +8,17 @@ type ClickPayloadType = {
 };
 
 // Define a type for the slice state
-interface CounterState {
+interface GameState {
   board: string[];
   xIsNext: boolean;
+  turn: 0 | 1; // 0 is human, 1 is computer
 }
 
 // Define the initial state using that type
-const initialState: CounterState = {
+const initialState: GameState = {
   board: Array(9).fill(null),
   xIsNext: true,
+  turn: 0,
 };
 
 export const gameSlice = createSlice({
@@ -32,6 +34,25 @@ export const gameSlice = createSlice({
       nextState.xIsNext = !xIsNext;
       state.board = nextState.board;
       state.xIsNext = nextState.xIsNext;
+      state.turn = 0;
+    },
+    computerPlay: (state, action: PayloadAction<ClickPayloadType>) => {
+      const { board, xIsNext } = state;
+      const { winner } = action.payload;
+      if (winner) return;
+      const emptyIndexes = board.map((cell, index) => {
+        if (cell === null) {
+          return index;
+        }
+      });
+      const index =
+        emptyIndexes[Math.floor(Math.random() * emptyIndexes.length)] || 0;
+      const nextState = JSON.parse(JSON.stringify(state));
+      nextState.board[index] = xIsNext ? "X" : "O";
+      nextState.xIsNext = !xIsNext;
+      state.board = nextState.board;
+      state.xIsNext = nextState.xIsNext;
+      state.turn = 1;
     },
     reset: (state) => {
       state.board = initialState.board;
@@ -40,7 +61,7 @@ export const gameSlice = createSlice({
   },
 });
 
-export const { click, reset } = gameSlice.actions;
+export const { click, computerPlay, reset } = gameSlice.actions;
 
 export const game = (state: RootState) => state.game;
 

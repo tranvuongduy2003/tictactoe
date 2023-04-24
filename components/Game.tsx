@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { calculateWinner } from "../helpers/calculateWinner";
 import Board from "./Board";
 import {
@@ -11,17 +11,33 @@ import {
   View,
 } from "react-native";
 import { useAppDispatch, useAppSelector } from "../redux/store/hooks";
-import { click, reset } from "../redux/slices/gameSlice";
+import { click, computerPlay, reset } from "../redux/slices/gameSlice";
+import Turn from "./Turn";
 
 interface IGameProps {}
 
 const Game: React.FunctionComponent<IGameProps> = (props) => {
+  const [count, setCount] = useState<number>(0);
+
   const dispatch = useAppDispatch();
-  const { board, xIsNext } = useAppSelector((state) => state.game);
+  const { board, xIsNext, turn } = useAppSelector((state) => state.game);
   const winner = calculateWinner(board);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (count < 3 && turn === 0) {
+        setCount((curCount) => curCount + 1);
+      }
+      if (count >= 3 && turn === 0) {
+        dispatch(computerPlay({ index: 0, winner }));
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [count]);
 
   const handleClick = (index: number) => {
     dispatch(click({ index, winner }));
+    setCount(0);
   };
   const handleResetGame = () => {
     dispatch(reset());
@@ -29,10 +45,11 @@ const Game: React.FunctionComponent<IGameProps> = (props) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Board cells={board} onPress={handleClick}></Board>
+      {!winner && <Turn timer={count} turn={turn} />}
+      <Board cells={board} onPress={handleClick} />
       <View style={styles.gameWinner}>
         <Text style={styles.winnerText}>
-          {winner ? `Winner is ${winner}` : ""}
+          {winner && (turn === 1 ? `Computer wins!` : "You win!")}
         </Text>
       </View>
       <TouchableOpacity style={styles.gameReset} onPress={handleResetGame}>
@@ -56,13 +73,14 @@ const styles = StyleSheet.create({
   winnerText: {
     fontSize: 30,
     color: "#f62682",
+    textAlign: "center",
   },
   gameReset: {
     width: "100%",
     padding: 25,
-    borderRadius: 5,
   },
   resetText: {
+    borderRadius: 5,
     paddingHorizontal: 20,
     paddingVertical: 15,
     backgroundColor: "#6a5af9",
